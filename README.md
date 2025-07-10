@@ -104,7 +104,7 @@ CREATE TABLE Partidas (
     FOREIGN KEY (Jugador2Id) REFERENCES Jugadores(JugadorId),
     FOREIGN KEY (GanadorId) REFERENCES Jugadores(JugadorId)
 );
-
+```sql
 CREATE TABLE Movimientos (
     MovimientoId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     PartidaId NUMBER NOT NULL,
@@ -124,40 +124,54 @@ Desde la terminal, ejecutá:
 ```bash
 pip install flask oracledb
 
-
 ## 4. 📂 Clonar el repositorio
 
-Cloná el repositorio desde GitHub usando el siguiente comando en la terminal:
+Cloná el repositorio desde GitHub con el siguiente comando en la terminal:
 
 ```bash
-git clone https://github.com/nicoleobregon07/ProyectoProgra-Web.git
+git clone https://github.com/nicoleobregon07/Proyecto-progra-avan-web.git
 
 
 ## 5. ⚙️ Configurar conexión a Oracle
 
-Editá el archivo `app.py` y asegurate de que la función `get_db_connection()` tenga los datos correctos de conexión a tu base de datos Oracle:
+Abrí el archivo `app.py` y asegurate de que la función `get_db_connection()` esté correctamente configurada con tus credenciales de Oracle:
 
-```python
+``python
 def get_db_connection():
     return oracledb.connect(
-        user="PROYECTOPROGRA",
-        password="PROYECTOPROGRA",
+        user="PROYECTOPROGRA1",
+        password="PROYECTOPROGRA1",
         dsn="localhost:1521/orcl"
     )
+📌 Parámetros clave:
+
+user: nombre del usuario Oracle.
+
+password: contraseña correspondiente.
+
+dsn: dirección del servicio Oracle, normalmente localhost:1521/orcl.
+
+⚠️ Si usás otro SID, IP o puerto, modificá el dsn según tu entorno.
 
 
+## 6. 🚀 Ejecutar la aplicación
 
-6. 🚀 Ejecutar la aplicación
+Seguí estos pasos para levantar la aplicación:
 
-Desde el archivo app.py
+1. Abrí una terminal en la carpeta del proyecto.
+2. Ejecutá el archivo principal con el siguiente comando:
+
+``bash
+python app.py
+
 
 python app.py
 Luego abrir navegador y visitar:
 
-IMG/image-1.png
+
 
 Editar
 ----http://localhost:5000/----
-
 IMG/image-2.png
-📚 Referencias y Prompts AI utilizados
+
+##7 📚 Referencias y Prompts AI utilizados
