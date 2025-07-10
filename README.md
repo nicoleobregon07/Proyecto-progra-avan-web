@@ -40,13 +40,13 @@
 
 ## 🏛️ Arquitectura
 
-**MVC (Modelo - Vista - Controlador):**  
+** ():**  
 La aplicación usa `app.py` como controlador principal, plantillas HTML como vistas, y Oracle como modelo (base de datos). Todo está organizado por rutas Flask que conectan las vistas con la lógica de negocio.
 
 ---
 
 ## 🗂️ Diagrama de la Base de Datos (Mermaid)
-*(Aquí podés insertar un diagrama Mermaid si es necesario)*
+![alt text](IMG/diagrama.png)
 
 ---
 
@@ -158,6 +158,7 @@ def get_db_connection():
 
 > ⚠️ Si usás otro SID, IP o puerto, modificá el `dsn` según tu entorno.
 
+Ejemplo: ![alt text](IMG/conexion.jpg)
 ---
 
 ### 6. 🚀 Ejecutar la aplicación
@@ -168,15 +169,16 @@ def get_db_connection():
 ```bash
 python app.py
 ```
+Ejemplo: ![alt text](IMG/image-1.png)
 
 3. Luego abrí tu navegador y visitá:
 
 ```
-http://localhost:5000/
+http://localhost:5###/
 ```
-
+Depende cual le abre: ![alt text](IMG/image-2.png)
 ---
 
 ## 7. 📚 Referencias y Prompts AI utilizados
 
-> Aquí podés listar fuentes, documentación o herramientas de IA utilizadas (como ChatGPT, documentación oficial de Oracle, Flask, etc).
+> Poner referencias si es necesario.
