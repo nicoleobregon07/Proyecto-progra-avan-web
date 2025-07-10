@@ -44,79 +44,48 @@
 ---
 
 ## 🗂️ Diagrama de la Base de Datos (Mermaid)
-![alt text](<Untitled diagram _ Mermaid Chart-2025-07-09-012746.png>)
-```mermaid
-erDiagram
-    Jugadores ||--o{ Partidas : "Jugador1Id"
-    Jugadores ||--o{ Partidas : "Jugador2Id"
-    Jugadores ||--o{ Partidas : "GanadorId"
-    Partidas ||--o{ Movimientos : "PartidaId"
-    Jugadores ||--o{ Movimientos : "JugadorId"
 
-    Jugadores {
-        number JugadorId PK
-        number Identificacion
-        string Nombre
-        number Marcador
-    }
+![alt text](IMG/diagrama.png)
 
-    Partidas {
-        number PartidaId PK
-        number Jugador1Id FK
-        number Jugador2Id FK
-        datetime FechaInicio
-        string Estado
-        number GanadorId FK
-    }
+# ⚙️ Instrucciones de Instalación, Configuración y Ejecución
 
-    Movimientos {
-        number MovimientoId PK
-        number PartidaId FK
-        number JugadorId FK
-        string Columna
-        number Fila
-        number Turno
-        datetime FechaHora
-    }
+## 1. 🧱 Crear usuario y base de datos en Oracle
 
-⚙️ Instrucciones de Instalación, Configuración y Ejecución
-1. 🧱 Crear usuario y base de datos en Oracle
-Desde CMD con SQL*Plus:
-
-
-Copiar:
+Desde la terminal con SQL*Plus o cmd:
 
 sqlplus sys as sysdba
 
-sql
-Copiar
+Crear usuario
+CREATE USER PROYECTOPROGRA1 IDENTIFIED BY PROYECTOPROGRA1;
 
--- Crear usuario
-CREATE USER PROYECTOPROGRA IDENTIFIED BY PROYECTOPROGRA;
+ Dar permiso de sesión
+GRANT CREATE SESSION TO PROYECTOPROGRA1;
 
--- Dar permiso de sesión
-GRANT CREATE SESSION TO PROYECTOPROGRA;
+Dar todos los privilegios
+GRANT ALL PRIVILEGES TO PROYECTOPROGRA1;
 
--- Dar todos los privilegios
-GRANT ALL PRIVILEGES TO PROYECTOPROGRA;
 
-1.3 📄 Crear conexión en SQL Developer
-Abre SQL Developer, crea una nueva conexión:
+### 1.3 📄 Crear conexión en SQL Developer
 
-Nombre de conexión: cualquier nombre (ej. ConexionProgra)
+Abre **SQL Developer** y seguí estos pasos para crear una nueva conexión:
 
-Usuario / Contraseña: PROYECTOPROGRA
+- **Nombre de conexión:** cualquier nombre (por ejemplo: `ConexionProgra`)
+- **Usuario:** `PROYECTOPROGRA1`
+- **Contraseña:** `PROYECTOPROGRA1`
+- **SID:** `orcl`
 
-SID: orcl
+> ✅ Luego hacé clic en **Guardar** y **Conectar**.
+**Tiene que estar primero el user creado en sql plus o cmd
 
-Guarda y conecta.
-Ejemplo
-![alt text](image.png)
+Ejemplo:
+![alt text](IMG/conexion.jpg)
 
-2. 🧱 Crear las tablas necesarias
-sql
-Copiar
-Editar
+
+## 2. 🧱 Crear las tablas necesarias
+
+Ejecutá el siguiente script SQL en Oracle (usando SQL Developer o SQL*Plus):
+
+```sql
 CREATE TABLE Jugadores (
     JugadorId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     Identificacion NUMBER UNIQUE NOT NULL,
@@ -148,32 +117,34 @@ CREATE TABLE Movimientos (
     FOREIGN KEY (JugadorId) REFERENCES Jugadores(JugadorId)
 );
 
-3. 🐍 Instalar Python y paquetes necesarios
-Desde la terminal, ejecutar:
+## 3. 🐍 Instalar Python y paquetes necesarios
 
+Desde la terminal, ejecutá:
 
-Copiar:
-
+```bash
 pip install flask oracledb
 
-4. 📂 Clonar repositorio
 
-Copiar
+## 4. 📂 Clonar el repositorio
 
+Cloná el repositorio desde GitHub usando el siguiente comando en la terminal:
+
+```bash
 git clone https://github.com/nicoleobregon07/ProyectoProgra-Web.git
 
-5. ⚙️ Configurar conexión a Oracle
-Editar el archivo app.py en la función get_db_connection():
 
+## 5. ⚙️ Configurar conexión a Oracle
 
+Editá el archivo `app.py` y asegurate de que la función `get_db_connection()` tenga los datos correctos de conexión a tu base de datos Oracle:
 
-Editar
+```python
 def get_db_connection():
     return oracledb.connect(
         user="PROYECTOPROGRA",
         password="PROYECTOPROGRA",
         dsn="localhost:1521/orcl"
     )
+
 
 
 6. 🚀 Ejecutar la aplicación
@@ -183,9 +154,10 @@ Desde el archivo app.py
 python app.py
 Luego abrir navegador y visitar:
 
-![alt text](image-1.png)
+IMG/image-1.png
 
 Editar
 ----http://localhost:5000/----
-![alt text](image-2.png)
+
+IMG/image-2.png
 📚 Referencias y Prompts AI utilizados
