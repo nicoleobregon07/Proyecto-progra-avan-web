@@ -101,10 +101,9 @@ body {
 </nav>
 
 
-    <main class="container content-wrapper">
+<main class="container content-wrapper">
     <h2 class="text-center text-warning mb-4">👤 Crear nuevo jugador</h2>
 
-    
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
@@ -118,12 +117,14 @@ body {
     <form method="POST" class="row g-3 mb-5">
         <div class="col-md-6">
             <label for="identificacion" class="form-label">Identificación:</label>
-            <input type="number" class="form-control" name="identificacion" id="identificacion" required>
+            <input type="number" class="form-control" name="identificacion" id="identificacion" min="1" required>
         </div>
+
         <div class="col-md-6">
             <label for="nombre" class="form-label">Nombre:</label>
             <input type="text" class="form-control" name="nombre" id="nombre" required>
         </div>
+
         <div class="col-12 text-center">
             <button type="submit" class="btn btn-success">Guardar</button>
         </div>
@@ -155,6 +156,7 @@ body {
         <a href="{{ url_for('index') }}" class="btn btn-outline-light">⬅ Volver al inicio</a>
     </div>
 </main>
+
 <script>
     setTimeout(() => {
         document.querySelectorAll('.flash-message').forEach(el => {
