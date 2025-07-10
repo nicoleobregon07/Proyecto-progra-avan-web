@@ -7,6 +7,11 @@
   - **Usuario GitHub:** [nicoleobregon07](https://github.com/nicoleobregon07)  
   - **Correo Git:** nicoleobregon07@gmail.com
 
+- **Nombre:** Kevin Alberto Calvo Brenes
+  - **Carné:** FI23028470
+  - **Usuario GitHub:** [KevinC-B](https://github.com/KevinC-B)  
+  - **Correo Git:** kev170103@gmail.com
+
 ---
 
 ## 🧰 Frameworks y Herramientas Utilizadas
