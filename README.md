@@ -65,7 +65,7 @@ Dar todos los privilegios
 GRANT ALL PRIVILEGES TO PROYECTOPROGRA1;
 
 
-### 1.3 📄 Crear conexión en SQL Developer
+### 1.2 📄 Crear conexión en SQL Developer
 
 Abre **SQL Developer** y seguí estos pasos para crear una nueva conexión:
 
@@ -104,7 +104,7 @@ CREATE TABLE Partidas (
     FOREIGN KEY (Jugador2Id) REFERENCES Jugadores(JugadorId),
     FOREIGN KEY (GanadorId) REFERENCES Jugadores(JugadorId)
 );
-```sql
+
 CREATE TABLE Movimientos (
     MovimientoId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     PartidaId NUMBER NOT NULL,
@@ -121,10 +121,12 @@ CREATE TABLE Movimientos (
 
 Desde la terminal, ejecutá:
 
-```bash
+bash
+Copiar
+Editar
 pip install flask oracledb
 
-## 4. 📂 Clonar el repositorio
+### 4. 📂 Clonar el repositorio
 
 Cloná el repositorio desde GitHub con el siguiente comando en la terminal:
 
@@ -132,7 +134,7 @@ Cloná el repositorio desde GitHub con el siguiente comando en la terminal:
 git clone https://github.com/nicoleobregon07/Proyecto-progra-avan-web.git
 
 
-## 5. ⚙️ Configurar conexión a Oracle
+### 5. ⚙️ Configurar conexión a Oracle
 
 Abrí el archivo `app.py` y asegurate de que la función `get_db_connection()` esté correctamente configurada con tus credenciales de Oracle:
 
@@ -154,7 +156,7 @@ dsn: dirección del servicio Oracle, normalmente localhost:1521/orcl.
 ⚠️ Si usás otro SID, IP o puerto, modificá el dsn según tu entorno.
 
 
-## 6. 🚀 Ejecutar la aplicación
+### 6. 🚀 Ejecutar la aplicación
 
 Seguí estos pasos para levantar la aplicación:
 
@@ -174,4 +176,4 @@ Editar
 ----http://localhost:5000/----
 IMG/image-2.png
 
-##7 📚 Referencias y Prompts AI utilizados
+### 7 📚 Referencias y Prompts AI utilizados
