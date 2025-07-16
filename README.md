@@ -46,8 +46,8 @@ La aplicación usa `app.py` como controlador principal, plantillas HTML como vis
 ---
 
 ## 🗂️ Diagrama de la Base de Datos (Mermaid)
-![alt text](IMG/diagrama.png)
 
+![alt text](IMG/diagrama.png)
 ---
 
 ## ⚙️ Instrucciones de Instalación, Configuración y Ejecución
@@ -158,7 +158,7 @@ def get_db_connection():
 
 > ⚠️ Si usás otro SID, IP o puerto, modificá el `dsn` según tu entorno.
 
-Ejemplo: ![alt text](IMG/conexion.jpg)
+![alt text](IMG/conexion.jpg)
 ---
 
 ### 6. 🚀 Ejecutar la aplicación
@@ -169,7 +169,7 @@ Ejemplo: ![alt text](IMG/conexion.jpg)
 ```bash
 python app.py
 ```
-Ejemplo: ![alt text](IMG/image-1.png)
+Ejemplo:![alt text](IMG/image-1.png) 
 
 3. Luego abrí tu navegador y visitá:
 
