@@ -41,10 +41,10 @@ def jugadores():
             cursor.close()
             conn.close()
             return redirect(url_for('jugadores'))
-        
-        # ✅ Validar que el nombre contenga solo letras y espacios
-        if not nombre.replace(" ", "").isalpha():
-            flash("❌ El nombre solo puede contener letras. No se permiten números ni símbolos.", "danger")
+
+        # ✅ Validar que el nombre no esté vacío (se permite cualquier contenido)
+        if not nombre.strip():
+            flash("❌ El nombre no puede estar vacío.", "danger")
             cursor.close()
             conn.close()
             return redirect(url_for('jugadores'))
@@ -365,30 +365,26 @@ def jugar(partida_id):
         cursor.close()
         conn.close()
         # Para GET, renderiza la plantilla con el estado final
-        if request.method == 'GET':
-            ganador_nombre_display = player_names.get(ganador_id, 'Empate') if ganador_id else 'Empate'
+    if request.method == 'GET':
+     if estado == 'FINALIZADA':
+        if ganador_id:
+            ganador_nombre_display = player_names.get(ganador_id, 'Desconocido')
             game_over_message = f"Partida finalizada. Ganador: {ganador_nombre_display}"
-            
-            flash(game_over_message, "info")
-            return render_template('jugar.html',
-                partida_id=partida_id,
-                jugador1_nombre=jugador1_nombre,
-                jugador2_nombre=jugador2_nombre,
-                turno_actual="Partida finalizada",
-                jugador1_id=jugador1_id,
-                jugador2_id=jugador2_id,
-                tablero=tablero, # Pasar el tablero ya construido
-                game_over_message=game_over_message # Pasar mensaje para el overlay
-            )
-        # Devuelve JSON indicando que la partida ha terminado
-        else: # request.method == 'POST'
-            ganador_nombre_display = player_names.get(ganador_id, 'Empate') if ganador_id else 'Empate'
-            return jsonify({
-                'success': False,
-                'message': f"Partida finalizada. Ganador: {ganador_nombre_display}",
-                'game_over': True,
-                'winner_id': ganador_id
-            })
+        else:
+            game_over_message = "Partida finalizada. Resultado: Empate"
+
+        flash(game_over_message, "info")
+        return render_template('jugar.html',
+            partida_id=partida_id,
+            jugador1_nombre=jugador1_nombre,
+            jugador2_nombre=jugador2_nombre,
+            turno_actual="Partida finalizada",
+            jugador1_id=jugador1_id,
+            jugador2_id=jugador2_id,
+            tablero=tablero,
+            game_over_message=game_over_message
+        )
+
 
     # Manejar solicitudes POST (movimientos AJAX)
     if request.method == 'POST':
@@ -525,41 +521,54 @@ def jugar(partida_id):
 @app.route('/reiniciar/<int:partida_id>')
 def reiniciar_partida(partida_id):
     """
-    Reinicia una partida existente, borrando sus movimientos y reseteando su estado.
+    Reinicia una partida existente (dejándola vacía),
+    y además crea una nueva partida con los mismos jugadores.
     """
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        # Obtener los IDs de los jugadores de la partida actual antes de resetearla
+        # Obtener IDs de los jugadores de la partida original
         cursor.execute("SELECT Jugador1Id, Jugador2Id FROM Partidas WHERE PartidaId = :1", (partida_id,))
-        jugadores_ids = cursor.fetchone()
-        if not jugadores_ids:
-            flash("Partida no encontrada para reiniciar.", "danger")
-            return redirect(url_for('index'))
-        
-        # Eliminar todos los movimientos de la partida
+        partida = cursor.fetchone()
+        if not partida:
+            flash("❌ Partida no encontrada para reiniciar.", "danger")
+            return redirect(url_for('cargar_partida'))
+
+        jugador1_id, jugador2_id = partida
+
+        # 1️⃣ Reiniciar la partida original: eliminar movimientos y limpiar estado
         cursor.execute("DELETE FROM Movimientos WHERE PartidaId = :1", (partida_id,))
-        
-        # Actualizar el estado de la partida a 'EN_CURSO' y limpiar el ganador
         cursor.execute("""
-            UPDATE Partidas 
-            SET Estado = 'EN_CURSO', GanadorId = NULL 
+            UPDATE Partidas
+            SET Estado = 'EN_CURSO', GanadorId = NULL, FechaInicio = SYSDATE
             WHERE PartidaId = :1
         """, (partida_id,))
+
+        # 2️⃣ Crear una nueva partida con los mismos jugadores
+        cursor.execute("""
+            INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio)
+            VALUES (:1, :2, 'EN_CURSO', SYSDATE)
+        """, (jugador1_id, jugador2_id))
+
+        # Obtener ID de la nueva partida
+        cursor.execute("SELECT MAX(PartidaId) FROM Partidas")
+        nueva_id = cursor.fetchone()[0]
+
         conn.commit()
 
-        flash("🔄 La partida se ha reiniciado exitosamente.", "info")
-        # Redirigir a la misma partida pero ahora estará vacía
-        return redirect(url_for('jugar', partida_id=partida_id))
+        flash(f"🔄 La partida #{partida_id} fue reiniciada y se creó la partida #{nueva_id} con los mismos jugadores.", "info")
+        return redirect(url_for('jugar', partida_id=nueva_id))
+
     except Exception as e:
         conn.rollback()
-        flash(f"Error al reiniciar la partida: {e}", "danger")
-        print(f"Error al reiniciar partida: {e}")
-        return redirect(url_for('index'))
+        flash(f"❌ Error al reiniciar la partida: {e}", "danger")
+        print(f"Error: {e}")
+        return redirect(url_for('cargar_partida'))
     finally:
         cursor.close()
         conn.close()
+
 
 
 ##########################################

@@ -4,60 +4,99 @@
   <meta charset="UTF-8">
   <title>Cargar Partida - Connect4</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
+
   <style>
     html, body {
       height: 100%;
       margin: 0;
-    }
-
-    body {
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(to bottom, #141E30, #243B55);
-      color: #fff;
+      background: linear-gradient(135deg, #ffffff, #ffffff);
+      color: #1b4965;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
     }
 
     .navbar {
-      background-color: #ff0040;
+      background-color: #b3ecff;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
     }
 
     .navbar-brand {
-      color: #fff;
+      color: #1b4965;
+      font-weight: bold;
+      font-size: 1.4rem;
     }
 
     .navbar-brand:hover {
-      color: #ffc107;
+      color: #ffe066;
+    }
+
+    .btn-outline-light {
+      color: #1b4965;
+      border-color: #1b4965;
+      font-weight: 500;
+    }
+
+    .btn-outline-light:hover {
+      background-color: #ffe066;
+      color: #000;
     }
 
     main {
-      flex: 1 0 auto;
+      flex: 1;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 100px 20px 40px;
+      padding: 120px 20px 60px;
       text-align: center;
     }
 
-    .table thead th {
-      background-color: #dc3545;
-      color: #fff;
+    .container {
+      max-width: 1100px;
+    }
+
+    h2 {
+      font-weight: 700;
+      color: #000000;
     }
 
     .table {
-      max-width: 1000px;
+      background-color: #ffffff;
+      color: #1b4965;
+      font-size: 1.2rem;
+    }
+
+    .table thead th {
+      background-color: #fcdcff;
+      color: #1b1b1b;
+      font-weight: bold;
+    }
+
+    .btn-success {
+      background-color: #ffe066;
+      color: #1b1b1b;
+      font-weight: 600;
+      border: none;
+    }
+
+    .btn-success:hover {
+      background-color: #ffdd33;
+      color: #ffffff;
     }
 
     footer {
-      background-color: #111;
-      color: #aaa;
+      background-color: #b3ecff;
+      color: #000000;
+      padding: 20px 10px;
       text-align: center;
-      padding: 12px;
-      font-size: 0.9rem;
-      margin-top: auto;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.4px;
+      border-top: 2px solid #1b4965;
     }
   </style>
 </head>
@@ -76,54 +115,50 @@
 
   <main>
     <div class="container">
-      <h2 class="text-warning mb-4">📂 Cargar Partida Existente</h2>
+      <h2 class="mb-4">📂 Cargar Partida Existente</h2>
 
       {% if partidas %}
         <div class="table-responsive">
-          <table class="table table-dark table-bordered table-hover mx-auto">
-<thead>
-  <tr>
-    <th># Partida</th>
-    <th>Jugador 1</th>
-    <th>Jugador 2</th>
-    <th>Fecha</th>
-    <th>Estado</th>
-    <th>Acción</th>
-  </tr>
-</thead>
-<tbody>
-  {% for partida in partidas %}
-  <tr>
-    <td>#{{ partida.id }}</td>
-    <td>{{ partida.jugador1 }}</td>
-    <td>{{ partida.jugador2 }}</td>
-    <td>{{ partida.fecha }}</td>
-    <td>
-  {% if partida.estado == 'FINALIZADA' %}
-    Finalizada 
-    {% if partida.ganador %}
-      - Ganó {{ partida.ganador }}
-    {% else %}
-      - Empate
-    {% endif %}
-  {% else %}
-    En curso
-  {% endif %}
-</td>
-
-    <td>
-      <a href="{{ url_for('jugar', partida_id=partida.id) }}" class="btn btn-sm btn-success">
-        Reanudar
-      </a>
-    </td>
-  </tr>
-  {% endfor %}
-</tbody>
-
+          <table class="table table-bordered table-hover shadow">
+            <thead>
+              <tr>
+                <th># Partida</th>
+                <th>Jugador 1</th>
+                <th>Jugador 2</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for partida in partidas %}
+              <tr>
+                <td>#{{ partida.id }}</td>
+                <td>{{ partida.jugador1 }}</td>
+                <td>{{ partida.jugador2 }}</td>
+                <td>{{ partida.fecha }}</td>
+                <td>
+                  {% if partida.estado == 'FINALIZADA' %}
+                    Finalizada 
+                    {% if partida.ganador %}
+                      - Ganó {{ partida.ganador }}
+                    {% else %}
+                      - Empate
+                    {% endif %}
+                  {% else %}
+                    En curso
+                  {% endif %}
+                </td>
+                <td>
+                  <a href="{{ url_for('jugar', partida_id=partida.id) }}" class="btn btn-sm btn-success">Reanudar</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
           </table>
         </div>
       {% else %}
-        <p class="text-light">No hay partidas registradas aún.</p>
+        <p class="text-secondary">No hay partidas registradas aún.</p>
       {% endif %}
 
       <div class="text-center mt-4">
@@ -133,7 +168,9 @@
   </main>
 
   <footer>
-    <small>© 2025 Connect4 | Proyecto en Flask</small>
+    <div class="container">
+      🎮 © 2025 Connect4 
+    </div>
   </footer>
 
 </body>

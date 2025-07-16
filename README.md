@@ -40,7 +40,6 @@
 
 ## 🏛️ Arquitectura
 
-** ():**  
 La aplicación usa `app.py` como controlador principal, plantillas HTML como vistas, y Oracle como modelo (base de datos). Todo está organizado por rutas Flask que conectan las vistas con la lógica de negocio.
 
 ---

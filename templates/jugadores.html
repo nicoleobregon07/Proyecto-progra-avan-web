@@ -8,81 +8,131 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap" rel="stylesheet">
 
     <style>
-        html, body {
+  html, body {
     height: 100%;
     margin: 0;
-}
-
-body {
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(to bottom, #141E30, #243B55);
-    color: #fff;
+    background: linear-gradient(to right, #ffffff, #ffffff);
+    color: #1b4965;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+  }
+
+  .navbar {
+    background-color: #b3ecff;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .navbar-brand {
+    color: #1b4965;
+    font-weight: 700;
+    font-size: 1.4rem;
+  }
+
+  .navbar-brand:hover {
+    color: #ffe066;
+  }
+
+  .btn-outline-light {
+    color: #1b4965;
+    border-color: #1b4965;
+    font-weight: 500;
+  }
+
+  .btn-outline-light:hover {
+    background-color: #ffe066;
+    color: #000;
+  }
+
+  .content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* centra verticalmente */
+  padding: 60px 20px 40px;
 }
 
+  h2 {
+    font-weight: 700;
+  }
 
-        .navbar {
-            background-color: #ff0040;
-        }
+  .form-label,
+  .table th {
+    font-size: 14px;
+    color: #1b4965;
+  }
 
-        .navbar-brand {
-            color: white;
-            font-size: 20px;
-        }
+  .form-control {
+    border-radius: 6px;
+  }
 
-        .navbar-brand:hover {
-            color: #ffc107;
-        }
+  .btn-success {
+    background-color: #ffe066;
+    color: #1b4965;
+    font-size: 14px;
+    text-transform: uppercase;
+    padding: 10px 24px;
+    font-weight: 600;
+    border: none;
+  }
 
-        .form-label, .table th {
-            font-size: 14px;
-        }
+  .btn-success:hover {
+    background-color: #ffd43b;
+    color: #fff;
+  }
 
-        .btn-success {
-            font-size: 14px;
-            text-transform: uppercase;
-            padding: 10px 24px;
-            font-weight: 500;
-        }
+  .table {
+  font-size: 1.2rem;
+  background-color: #fcdcff;
+  color: #1b4965;
+  border-radius: 12px;
+  overflow: hidden;
+}
 
-        .btn-outline-light {
-            border-radius: 6px;
-            padding: 8px 20px;
-        }
+.table thead {
+  background-color: #ffc0e0; 
+  color: #1b4965;
+}
 
-        table {
-            font-size: 14px;
-        }
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #ececec; 
+}
 
-        footer {
-            background-color: #111;
-            color: #aaa;
-            text-align: center;
-            padding: 12px;
-            font-size: 0.9rem;
-            margin-top: auto;
-        }
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #fcdcff; 
+}
 
-        h2 {
-            font-weight: 600;
-        }
+.table-bordered {
+  border: 1px solid #fcdcff;
+}
 
-        .form-control {
-            border-radius: 6px;
-        }
+  .alert {
+    font-size: 0.95rem;
+  }
 
-        .content-wrapper {
-            flex: 1 0 auto;
-            padding-top: 300px;
-            padding-bottom: 40px;
-        }
+  .table-responsive {
+    overflow-x: auto;
+  }
 
-        .table-responsive {
-            overflow-x: auto;
-        }
-    </style>
+  footer {
+  background-color: #b3ecff;
+  color: #000000;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 1.2rem; 
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+  .text-warning {
+    color: #000000 !important;
+  }
+
+  .text-info {
+    color: #000000 !important;
+  }
+</style>
 </head>
 <body>
 
@@ -129,28 +179,27 @@ body {
             <button type="submit" class="btn btn-success">Guardar</button>
         </div>
     </form>
-
-    <h2 class="text-center text-info mb-3">📋 Lista de jugadores</h2>
-    <div class="table-responsive">
-        <table class="table table-dark table-striped table-bordered shadow">
-            <thead class="table-danger">
-                <tr>
-                    <th>Identificación</th>
-                    <th>Nombre</th>
-                    <th>Marcador</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for j in jugadores %}
-                <tr>
-                    <td>{{ j[1] }}</td>
-                    <td>{{ j[2] }}</td>
-                    <td>{{ j[3] }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<h2 class="text-center text-info mb-3">📋 Lista de jugadores</h2>
+<div class="table-responsive">
+  <table class="table table-striped table-bordered shadow" style="border-radius: 12px; overflow: hidden;">
+    <thead>
+      <tr>
+        <th>Identificación</th>
+        <th>Nombre</th>
+        <th>Marcador</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for j in jugadores %}
+      <tr>
+        <td>{{ j[1] }}</td>
+        <td>{{ j[2] }}</td>
+        <td>{{ j[3] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
     <div class="text-center mt-4">
         <a href="{{ url_for('index') }}" class="btn btn-outline-light">⬅ Volver al inicio</a>
@@ -165,11 +214,11 @@ body {
         });
     }, 5000);
 </script>
-    <footer class="mt-auto" style="background: linear-gradient(to right, #111, #1a1a1a); border-top: 2px solid #ff0040; padding: 15px 0; text-align: center; color: #ccc; font-size: 0.9rem;">
-  <div class="container">
-    <span>🎮 © 2025 Connect4</span>
-  </div>
-</footer>
+    <footer>
+    <div class="container">
+      🎮 © 2025 Connect4 
+    </div>
+  </footer>
 
 
 </body>
