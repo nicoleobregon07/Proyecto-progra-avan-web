@@ -261,7 +261,11 @@ body {
 
     <div class="container content-wrapper text-center">
         <h2 class="text-warning">Partida #{{ partida_id }}</h2>
-        <p class="lead">Turno actual: <strong class="text-info" id="turno-actual">{{ turno_actual }}</strong></p>
+        {% if game_over_message %}
+  <p class="lead text-danger fw-bold">Partida finalizada</p>
+{% else %}
+  <p class="lead">Turno actual: <strong class="text-info" id="turno-actual">{{ turno_actual }}</strong></p>
+{% endif %}
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
