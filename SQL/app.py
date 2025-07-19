@@ -136,9 +136,6 @@ def actualizar_marcador(jugador_id):
 
 @app.route('/partida/nueva', methods=['GET', 'POST'])
 def crear_partida():
-    """
-    Maneja la creación de una nueva partida entre dos jugadores.
-    """
     conn = get_db_connection()
     cursor = conn.cursor()
 
@@ -146,7 +143,6 @@ def crear_partida():
         jugador1_id = request.form['jugador1']
         jugador2_id = request.form['jugador2']
 
-        # Mismo jugador seleccionado
         if jugador1_id == jugador2_id:
             flash("❌ No es permitido escoger el mismo jugador. Un jugador no puede jugar contra sí mismo.", "danger")
             cursor.close()
@@ -166,23 +162,22 @@ def crear_partida():
                 conn.close()
                 return redirect(url_for('crear_partida'))
 
-            # Crear la partida
+            # Insertar nueva partida con ID generado automáticamente
             cursor.execute("""
-                INSERT INTO Partidas (Jugador1Id, Jugador2Id)
-                VALUES (:1, :2)
+                INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio)
+                VALUES (:1, :2, 'EN_CURSO', SYSDATE)
             """, (jugador1_id, jugador2_id))
-            conn.commit()
 
-            # Obtener el ID de la partida recién creada
+            # Obtener el ID recién generado
             cursor.execute("""
-                SELECT PartidaId 
-                FROM Partidas 
-                WHERE Jugador1Id = :1 AND Jugador2Id = :2 
-                ORDER BY PartidaId DESC FETCH FIRST 1 ROWS ONLY
+                SELECT MAX(PartidaId) FROM Partidas 
+                WHERE Jugador1Id = :1 AND Jugador2Id = :2
             """, (jugador1_id, jugador2_id))
             partida_creada = cursor.fetchone()
 
-            flash("✅ Partida creada correctamente. ¡A jugar!", "success")
+            conn.commit()
+
+            flash(f"✅ Partida #{partida_creada[0]} creada correctamente. ¡A jugar!", "success")
             return redirect(url_for('jugar', partida_id=partida_creada[0]))
 
         except Exception as e:
@@ -520,15 +515,11 @@ def jugar(partida_id):
 
 @app.route('/reiniciar/<int:partida_id>')
 def reiniciar_partida(partida_id):
-    """
-    Reinicia una partida existente (dejándola vacía),
-    y además crea una nueva partida con los mismos jugadores.
-    """
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        # Obtener IDs de los jugadores de la partida original
+        # Obtener jugadores de la partida original
         cursor.execute("SELECT Jugador1Id, Jugador2Id FROM Partidas WHERE PartidaId = :1", (partida_id,))
         partida = cursor.fetchone()
         if not partida:
@@ -537,7 +528,7 @@ def reiniciar_partida(partida_id):
 
         jugador1_id, jugador2_id = partida
 
-        # 1️⃣ Reiniciar la partida original: eliminar movimientos y limpiar estado
+        # ✅ Limpiar movimientos de la partida actual (#6)
         cursor.execute("DELETE FROM Movimientos WHERE PartidaId = :1", (partida_id,))
         cursor.execute("""
             UPDATE Partidas
@@ -545,26 +536,27 @@ def reiniciar_partida(partida_id):
             WHERE PartidaId = :1
         """, (partida_id,))
 
-        # 2️⃣ Crear una nueva partida con los mismos jugadores
+        # ✅ Crear nueva partida con mismo jugadores (será la #7)
         cursor.execute("""
             INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio)
             VALUES (:1, :2, 'EN_CURSO', SYSDATE)
         """, (jugador1_id, jugador2_id))
 
-        # Obtener ID de la nueva partida
+        # Obtener ID de la nueva partida creada
         cursor.execute("SELECT MAX(PartidaId) FROM Partidas")
         nueva_id = cursor.fetchone()[0]
 
         conn.commit()
 
-        flash(f"🔄 La partida #{partida_id} fue reiniciada y se creó la partida #{nueva_id} con los mismos jugadores.", "info")
+        flash(f"🔄 Se creó la partida #{nueva_id} con los mismos jugadores y se limpió la #{partida_id}.", "info")
         return redirect(url_for('jugar', partida_id=nueva_id))
 
     except Exception as e:
         conn.rollback()
         flash(f"❌ Error al reiniciar la partida: {e}", "danger")
-        print(f"Error: {e}")
+        print(f"Error al reiniciar partida: {e}")
         return redirect(url_for('cargar_partida'))
+
     finally:
         cursor.close()
         conn.close()
