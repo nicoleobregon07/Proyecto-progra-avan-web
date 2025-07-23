@@ -18,7 +18,18 @@ CREATE TABLE Partidas (
     FOREIGN KEY (Jugador2Id) REFERENCES Jugadores(JugadorId),
     FOREIGN KEY (GanadorId) REFERENCES Jugadores(JugadorId)
 );
+ALTER TABLE Partidas ADD NumeroVisible NUMBER;
+DECLARE
+  v_contador NUMBER := 1;
+BEGIN
+  FOR partida IN (SELECT PartidaId FROM Partidas WHERE NumeroVisible IS NULL ORDER BY PartidaId)
+  LOOP
+    UPDATE Partidas
+    SET NumeroVisible = v_contador
+    WHERE PartidaId = partida.PartidaId;
 
+    v_contador := v_contador + 1;
+  END LOOP;
 -- Tabla de movimientos por partida, prueba
 CREATE TABLE Movimientos (
     MovimientoId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

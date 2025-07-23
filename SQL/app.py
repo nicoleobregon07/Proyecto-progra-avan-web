@@ -206,6 +206,7 @@ def cargar_partida():
 
     cursor.execute("""
     SELECT p.PartidaId, 
+           p.NumeroVisible,  -- 👈 nuevo campo para mostrar al usuario
            j1.Nombre AS jugador1, 
            j2.Nombre AS jugador2, 
            TO_CHAR(p.FechaInicio, 'YYYY-MM-DD HH24:MI') AS fecha,
@@ -216,20 +217,21 @@ def cargar_partida():
     JOIN Jugadores j1 ON p.Jugador1Id = j1.JugadorId
     JOIN Jugadores j2 ON p.Jugador2Id = j2.JugadorId
     LEFT JOIN Jugadores jg ON p.GanadorId = jg.JugadorId
-    ORDER BY p.FechaInicio DESC
-""")
+    ORDER BY p.NumeroVisible DESC
+    """)
 
     datos = cursor.fetchall()
 
     partidas = []
     for row in datos:
         partidas.append({
-            'id': row[0],
-            'jugador1': row[1],
-            'jugador2': row[2],
-            'fecha': row[3],
-            'estado': row[4],
-            'ganador': row[6]  # Puede ser None
+            'id': row[0],                 # PartidaId real
+            'numero_visible': row[1],     # 👈 Nuevo número que vas a mostrar (#1, #2, #3...)
+            'jugador1': row[2],
+            'jugador2': row[3],
+            'fecha': row[4],
+            'estado': row[5],
+            'ganador': row[7]  # Puede ser None
         })
 
     cursor.close()
@@ -317,8 +319,12 @@ def jugar(partida_id):
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # Obtener la partida
-    cursor.execute("SELECT PartidaId, Jugador1Id, Jugador2Id, Estado, GanadorId FROM Partidas WHERE PartidaId = :1", (partida_id,))
+    # Obtener la partida incluyendo NumeroVisible
+    cursor.execute("""
+        SELECT PartidaId, Jugador1Id, Jugador2Id, Estado, GanadorId, NumeroVisible
+        FROM Partidas
+        WHERE PartidaId = :1
+    """, (partida_id,))
     partida = cursor.fetchone()
     if not partida:
         flash("Partida no encontrada", "danger")
@@ -326,7 +332,7 @@ def jugar(partida_id):
         conn.close()
         return redirect(url_for('index'))
 
-    partida_id, jugador1_id, jugador2_id, estado, ganador_id = partida
+    partida_id, jugador1_id, jugador2_id, estado, ganador_id, numero_visible = partida
 
     # Obtener nombres de los jugadores
     cursor.execute("SELECT Nombre FROM Jugadores WHERE JugadorId = :1", (jugador1_id,))
@@ -334,34 +340,31 @@ def jugar(partida_id):
     cursor.execute("SELECT Nombre FROM Jugadores WHERE JugadorId = :1", (jugador2_id,))
     jugador2_nombre = cursor.fetchone()[0]
 
-    # Definir el diccionario player_names aquí
     player_names = {
         jugador1_id: jugador1_nombre,
         jugador2_id: jugador2_nombre
     }
 
     # Obtener movimientos existentes
-    cursor.execute("SELECT Columna, Fila, JugadorId FROM Movimientos WHERE PartidaId = :1 ORDER BY Turno ASC", (partida_id,))
+    cursor.execute("""
+        SELECT Columna, Fila, JugadorId
+        FROM Movimientos
+        WHERE PartidaId = :1
+        ORDER BY Turno ASC
+    """, (partida_id,))
     movimientos_db = cursor.fetchall()
 
-    # Crear matriz del tablero en memoria
     tablero = [['empty' for _ in range(7)] for _ in range(6)]
     for col_char, fila, jugador_id_mov in movimientos_db:
         col_idx = 'ABCDEFG'.index(col_char)
-        tablero[fila][col_idx] = jugador_id_mov # Almacenar el ID del jugador en la celda
+        tablero[fila][col_idx] = jugador_id_mov
 
-    # Determinar turno actual
     turno_numero = len(movimientos_db)
     turno_actual_id = jugador1_id if turno_numero % 2 == 0 else jugador2_id
-    nombre_turno_actual = player_names[turno_actual_id] # Usar player_names aquí
+    nombre_turno_actual = player_names[turno_actual_id]
 
-    # Si la partida ya está finalizada, no permitir movimientos
-    if estado == 'FINALIZADA':
-        cursor.close()
-        conn.close()
-        # Para GET, renderiza la plantilla con el estado final
-    if request.method == 'GET':
-     if estado == 'FINALIZADA':
+    # Si la partida está finalizada, mostrar mensaje y tablero sin permitir movimiento
+    if request.method == 'GET' and estado == 'FINALIZADA':
         if ganador_id:
             ganador_nombre_display = player_names.get(ganador_id, 'Desconocido')
             game_over_message = f"Partida finalizada. Ganador: {ganador_nombre_display}"
@@ -371,6 +374,7 @@ def jugar(partida_id):
         flash(game_over_message, "info")
         return render_template('jugar.html',
             partida_id=partida_id,
+            numero_visible=numero_visible,
             jugador1_nombre=jugador1_nombre,
             jugador2_nombre=jugador2_nombre,
             turno_actual="Partida finalizada",
@@ -380,8 +384,7 @@ def jugar(partida_id):
             game_over_message=game_over_message
         )
 
-
-    # Manejar solicitudes POST (movimientos AJAX)
+    # POST – Movimiento del jugador
     if request.method == 'POST':
         data = request.get_json()
         if not data or 'column' not in data:
@@ -390,48 +393,42 @@ def jugar(partida_id):
             return jsonify({'success': False, 'message': 'Datos de columna no recibidos.'}), 400
 
         try:
-            # La columna viene como índice numérico (0-6) desde JS
             col_idx = int(data['column'])
-            columna_char = 'ABCDEFG'[col_idx] #Convertir a letra para la base de datos
+            columna_char = 'ABCDEFG'[col_idx]
         except (ValueError, IndexError):
             cursor.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Columna inválida.'}), 400
 
-        # Validar que la columna esté dentro de los límites
         if not (0 <= col_idx < 7):
             cursor.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Columna fuera de rango.'}), 400
 
-        # Verificar fila disponible en columna (desde abajo hacia arriba)
         fila_disponible = None
-        for f in range(6): # Filas 0 a 5
+        for f in range(6):
             if tablero[f][col_idx] == 'empty':
                 fila_disponible = f
                 break
-        
+
         if fila_disponible is None:
             cursor.close()
             conn.close()
             return jsonify({'success': False, 'message': 'Columna llena, elige otra!'})
 
         try:
-            # Insertar jugada en la base de datos
             cursor.execute("""
                 INSERT INTO Movimientos (PartidaId, JugadorId, Columna, Fila, Turno)
                 VALUES (:1, :2, :3, :4, :5)
             """, (partida_id, turno_actual_id, columna_char, fila_disponible, turno_numero + 1))
             conn.commit()
 
-            # Actualizar tablero en memoria para la verificación de victoria
             tablero[fila_disponible][col_idx] = turno_actual_id
 
             game_over = False
             message = "Movimiento exitoso!"
             winner_id = None
 
-            # Verificar victoria
             if verificar_4_en_linea(tablero, turno_actual_id):
                 game_over = True
                 winner_id = turno_actual_id
@@ -441,15 +438,11 @@ def jugar(partida_id):
                     WHERE PartidaId = :2
                 """, (winner_id, partida_id))
                 conn.commit()
-                # Actualizar marcador del ganador
                 actualizar_marcador(winner_id)
-                # Actualizar marcador del perdedor
                 loser_id = jugador1_id if winner_id == jugador2_id else jugador2_id
                 actualizar_marcador(loser_id)
 
-            # Verificar empate
-            elif (turno_numero + 1) == 42: # último movimiento posible
-                # Asegurarse de que no haya un ganador antes de declarar empate
+            elif (turno_numero + 1) == 42:
                 if not verificar_4_en_linea(tablero, jugador1_id) and \
                    not verificar_4_en_linea(tablero, jugador2_id):
                     game_over = True
@@ -459,29 +452,26 @@ def jugar(partida_id):
                         WHERE PartidaId = :1
                     """, (partida_id,))
                     conn.commit()
-                    # Actualizar marcadores de ambos jugadores por empate
                     actualizar_marcador(jugador1_id)
                     actualizar_marcador(jugador2_id)
 
-            # Determinar el siguiente jugador y su nombre
             next_player_id = jugador2_id if turno_actual_id == jugador1_id else jugador1_id
             next_player_name = player_names[next_player_id]
 
             cursor.close()
             conn.close()
 
-            # Devolver respuesta JSON al frontend
             return jsonify({
                 'success': True,
                 'row': fila_disponible,
                 'column': col_idx,
-                'player_color': turno_actual_id, #ID del jugador que acaba de mover
+                'player_color': turno_actual_id,
                 'jugador1_id': jugador1_id,
                 'jugador2_id': jugador2_id,
                 'next_player_name': next_player_name,
                 'game_over': game_over,
                 'message': message,
-                'winner_id': winner_id #ID del ganador si lo hay
+                'winner_id': winner_id
             })
 
         except Exception as e:
@@ -494,7 +484,6 @@ def jugar(partida_id):
     cursor.close()
     conn.close()
 
-    # Si la partida ya estaba finalizada al cargar la página, pasar el mensaje para el overlay
     initial_game_over_message = None
     if estado == 'FINALIZADA':
         ganador_nombre_display = player_names.get(ganador_id, 'Empate') if ganador_id else 'Empate'
@@ -502,13 +491,14 @@ def jugar(partida_id):
 
     return render_template('jugar.html',
         partida_id=partida_id,
+        numero_visible=numero_visible,
         jugador1_nombre=jugador1_nombre,
         jugador2_nombre=jugador2_nombre,
         turno_actual=nombre_turno_actual,
         jugador1_id=jugador1_id,
         jugador2_id=jugador2_id,
-        tablero=tablero, #Pasar la matriz del tablero al template
-        game_over_message=initial_game_over_message # Pasar el mensaje inicial si la partida ya está finalizada
+        tablero=tablero,
+        game_over_message=initial_game_over_message
     )
 
 ##########################################################
@@ -528,7 +518,7 @@ def reiniciar_partida(partida_id):
 
         jugador1_id, jugador2_id = partida
 
-        # ✅ Limpiar movimientos de la partida actual (#6)
+        # ✅ Limpiar movimientos de la partida actual
         cursor.execute("DELETE FROM Movimientos WHERE PartidaId = :1", (partida_id,))
         cursor.execute("""
             UPDATE Partidas
@@ -536,11 +526,15 @@ def reiniciar_partida(partida_id):
             WHERE PartidaId = :1
         """, (partida_id,))
 
-        # ✅ Crear nueva partida con mismo jugadores (será la #7)
+        # ✅ Obtener siguiente NumeroVisible
+        cursor.execute("SELECT NVL(MAX(NumeroVisible), 0) + 1 FROM Partidas")
+        numero_visible = cursor.fetchone()[0]
+
+        # ✅ Crear nueva partida con mismo jugadores y NumeroVisible
         cursor.execute("""
-            INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio)
-            VALUES (:1, :2, 'EN_CURSO', SYSDATE)
-        """, (jugador1_id, jugador2_id))
+            INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio, NumeroVisible)
+            VALUES (:1, :2, 'EN_CURSO', SYSDATE, :3)
+        """, (jugador1_id, jugador2_id, numero_visible))
 
         # Obtener ID de la nueva partida creada
         cursor.execute("SELECT MAX(PartidaId) FROM Partidas")
@@ -548,7 +542,7 @@ def reiniciar_partida(partida_id):
 
         conn.commit()
 
-        flash(f"🔄 Se creó la partida #{nueva_id} con los mismos jugadores y se limpió la #{partida_id}.", "info")
+        flash(f"🔄 Se creó la partida #{numero_visible} con los mismos jugadores y se limpió la #{partida_id}.", "info")
         return redirect(url_for('jugar', partida_id=nueva_id))
 
     except Exception as e:
