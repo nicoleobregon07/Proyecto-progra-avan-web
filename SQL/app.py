@@ -162,27 +162,29 @@ def crear_partida():
                 conn.close()
                 return redirect(url_for('crear_partida'))
 
-            # Insertar nueva partida con ID generado automáticamente
+            # Obtener siguiente NumeroVisible (MAX + 1)
+            cursor.execute("SELECT NVL(MAX(NumeroVisible), 0) + 1 FROM Partidas")
+            numero_visible = cursor.fetchone()[0]
+
+            # Insertar nueva partida con NumeroVisible calculado
             cursor.execute("""
-                INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio)
-                VALUES (:1, :2, 'EN_CURSO', SYSDATE)
-            """, (jugador1_id, jugador2_id))
+                INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio, NumeroVisible)
+                VALUES (:1, :2, 'EN_CURSO', SYSDATE, :3)
+            """, (jugador1_id, jugador2_id, numero_visible))
 
             # Obtener el ID recién generado
-            cursor.execute("""
-                SELECT MAX(PartidaId) FROM Partidas 
-                WHERE Jugador1Id = :1 AND Jugador2Id = :2
-            """, (jugador1_id, jugador2_id))
-            partida_creada = cursor.fetchone()
+            cursor.execute("SELECT MAX(PartidaId) FROM Partidas")
+            partida_creada = cursor.fetchone()[0]
 
             conn.commit()
 
-            flash(f"✅ Partida #{partida_creada[0]} creada correctamente. ¡A jugar!", "success")
-            return redirect(url_for('jugar', partida_id=partida_creada[0]))
+            # Mensaje correcto usando NumeroVisible
+            flash(f"✅ Partida #{numero_visible} creada correctamente. ¡A jugar!", "success")
+            return redirect(url_for('jugar', partida_id=partida_creada))
 
         except Exception as e:
             conn.rollback()
-            flash("❌ Ocurrió un error al crear la partida. Intentalo nuevamente.", "danger")
+            flash("❌ Ocurrió un error al crear la partida. Inténtalo nuevamente.", "danger")
             print(f"Error al crear partida: {e}")
 
         finally:
@@ -195,7 +197,6 @@ def crear_partida():
     cursor.close()
     conn.close()
     return render_template('crear_partida.html', jugadores=jugadores)
-
 ######################################################
 
 @app.route('/cargar-partida')
@@ -206,7 +207,7 @@ def cargar_partida():
 
     cursor.execute("""
     SELECT p.PartidaId, 
-           p.NumeroVisible,  -- 👈 nuevo campo para mostrar al usuario
+           p.NumeroVisible,
            j1.Nombre AS jugador1, 
            j2.Nombre AS jugador2, 
            TO_CHAR(p.FechaInicio, 'YYYY-MM-DD HH24:MI') AS fecha,
@@ -222,21 +223,25 @@ def cargar_partida():
 
     datos = cursor.fetchall()
 
-    partidas = []
-    for row in datos:
-        partidas.append({
-            'id': row[0],                 # PartidaId real
-            'numero_visible': row[1],     # 👈 Nuevo número que vas a mostrar (#1, #2, #3...)
+    partidas = [
+        {
+            'id': row[0],
+            'numero_visible': row[1],
             'jugador1': row[2],
             'jugador2': row[3],
             'fecha': row[4],
             'estado': row[5],
-            'ganador': row[7]  # Puede ser None
-        })
+            'ganador': row[7] if row[7] else None
+        }
+        for row in datos
+    ]
 
     cursor.close()
     conn.close()
+
+    # Enviar lista vacía si no hay datos (para que el {% else %} del template funcione)
     return render_template('cargar_partida.html', partidas=partidas)
+
 
 ##################################################
 
@@ -510,39 +515,48 @@ def reiniciar_partida(partida_id):
 
     try:
         # Obtener jugadores de la partida original
-        cursor.execute("SELECT Jugador1Id, Jugador2Id FROM Partidas WHERE PartidaId = :1", (partida_id,))
+        cursor.execute("""
+            SELECT Jugador1Id, Jugador2Id
+            FROM Partidas
+            WHERE PartidaId = :1
+        """, (partida_id,))
         partida = cursor.fetchone()
+
         if not partida:
             flash("❌ Partida no encontrada para reiniciar.", "danger")
             return redirect(url_for('cargar_partida'))
 
         jugador1_id, jugador2_id = partida
 
-        # ✅ Limpiar movimientos de la partida actual
+        # Limpiar movimientos de la partida original
         cursor.execute("DELETE FROM Movimientos WHERE PartidaId = :1", (partida_id,))
         cursor.execute("""
             UPDATE Partidas
-            SET Estado = 'EN_CURSO', GanadorId = NULL, FechaInicio = SYSDATE
+            SET Estado = 'EN_CURSO',
+                GanadorId = NULL,
+                FechaInicio = SYSDATE
             WHERE PartidaId = :1
         """, (partida_id,))
 
-        # ✅ Obtener siguiente NumeroVisible
+        # Obtener siguiente NumeroVisible (el más alto + 1)
         cursor.execute("SELECT NVL(MAX(NumeroVisible), 0) + 1 FROM Partidas")
-        numero_visible = cursor.fetchone()[0]
+        result = cursor.fetchone()[0]
+        nuevo_numero_visible = 1 if result is None else result  # fallback por si tabla está vacía
 
-        # ✅ Crear nueva partida con mismo jugadores y NumeroVisible
+        # Crear nueva partida con mismos jugadores y nuevo NumeroVisible
         cursor.execute("""
             INSERT INTO Partidas (Jugador1Id, Jugador2Id, Estado, FechaInicio, NumeroVisible)
             VALUES (:1, :2, 'EN_CURSO', SYSDATE, :3)
-        """, (jugador1_id, jugador2_id, numero_visible))
+        """, (jugador1_id, jugador2_id, nuevo_numero_visible))
 
-        # Obtener ID de la nueva partida creada
+        # Obtener el ID de la nueva partida creada
         cursor.execute("SELECT MAX(PartidaId) FROM Partidas")
         nueva_id = cursor.fetchone()[0]
 
         conn.commit()
 
-        flash(f"🔄 Se creó la partida #{numero_visible} con los mismos jugadores y se limpió la #{partida_id}.", "info")
+        # Mensaje claro: solo la nueva partida
+        flash(f"🔄 Se creó la partida #{nuevo_numero_visible} con los mismos jugadores.", "info")
         return redirect(url_for('jugar', partida_id=nueva_id))
 
     except Exception as e:

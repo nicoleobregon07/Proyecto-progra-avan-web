@@ -5,7 +5,7 @@ CREATE TABLE Jugadores (
     Nombre VARCHAR2(100) NOT NULL,
     Marcador NUMBER DEFAULT 0
 );
-
+CREATE SEQUENCE SecuenciaPartidas START WITH 1 INCREMENT BY 1;
 -- Tabla de partidas
 CREATE TABLE Partidas (
     PartidaId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
