@@ -181,3 +181,5 @@ Depende cual le abre: ![alt text](IMG/image-2.png)
 ## 7. 📚 Referencias y Prompts AI utilizados
 
 > Poner referencias si es necesario.
+> Prompt ayuda desarrollo game.js:
+Me encuentro desarrollando el juego Connect4. Podrías proporcionarme un ejemplo o guía de como manejar los clics en las columnas del tablero, que el movimiento se envie al servidor y que se actualice el tablero con la ficha del jugador. 
