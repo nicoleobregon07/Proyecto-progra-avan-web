@@ -91,7 +91,7 @@ CREATE TABLE Jugadores (
     Nombre VARCHAR2(100) NOT NULL,
     Marcador NUMBER DEFAULT 0
 );
-
+-------------------------------------------------------------
 CREATE TABLE Partidas (
     PartidaId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     Jugador1Id NUMBER NOT NULL,
@@ -103,7 +103,8 @@ CREATE TABLE Partidas (
     FOREIGN KEY (Jugador2Id) REFERENCES Jugadores(JugadorId),
     FOREIGN KEY (GanadorId) REFERENCES Jugadores(JugadorId)
 );
-
+ALTER TABLE Partidas ADD NumeroVisible NUMBER;
+----------------------------------------------------------------
 CREATE TABLE Movimientos (
     MovimientoId NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     PartidaId NUMBER NOT NULL,
