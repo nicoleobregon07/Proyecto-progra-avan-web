@@ -180,6 +180,91 @@ Depende cual le abre: ![alt text](IMG/image-2.png)
 
 ## 7. 📚 Referencias y Prompts AI utilizados
 
-> Poner referencias si es necesario.
-> Prompt ayuda desarrollo game.js:
-Me encuentro desarrollando el juego Connect4. Podrías proporcionarme un ejemplo o guía de como manejar los clics en las columnas del tablero, que el movimiento se envie al servidor y que se actualice el tablero con la ficha del jugador. 
+Durante el desarrollo del sistema web interactivo Connect4, se utilizaron recursos de inteligencia artificial proporcionados por ChatGPT  para acelerar y mejorar tareas de programación, estilo visual y experiencia de usuario. El proceso fue iterativo y permitió afinar tanto la lógica como la presentación del sistema a través de múltiples interacciones.
+
+Herramientas y Lenguajes Asistidos
+
+HTML5 y CSS3: para estructuras semánticas modernas y estilos responsivos.
+
+Bootstrap 5.3: integración de componentes visuales como cards, botones y formularios estilizados.
+
+Python (Flask): asistencia en rutas, renderizado de templates (render_template) y manejo de formularios.
+
+Jinja2: ayuda en condicionales, ciclos for, y control de errores en los templates.
+
+Ejemplos de Prompts Utilizados
+
+A continuación se presentan ejemplos de prompts utilizados y el resultado o fragmento de código generado:
+
+🎨 Estilo Visual Centrado y Responsive
+
+Prompt:
+
+“¿Cómo centro vertical y horizontalmente un contenedor dentro del body usando Bootstrap y CSS personalizado?”
+
+Resultado generado:
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100px 20px 60px;
+}
+
+📋 Mejora de Formulario de Creación de Partida
+
+Prompt:
+
+“Haz más grande el texto y los elementos del formulario para que se vean destacados.”
+
+Código generado:
+
+<h2 class="text-center display-5 fw-bold">🕹️ Crear nueva partida</h2>
+
+label, select, .btn {
+  font-size: 1.1rem;
+  padding: 10px;
+}
+
+🎮 Lógica de Reinicio de Partida
+
+Prompt:
+
+“Quiero un botón que reinicie la misma partida y elimine los movimientos, pero que no cambie de jugadores.”
+
+Código de la ruta Flask sugerida:
+
+@app.route('/reiniciar/<int:partida_id>')
+def reiniciar_partida(partida_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM Movimientos WHERE PartidaId = :1", (partida_id,))
+    cursor.execute("""
+        UPDATE Partidas
+        SET Estado = 'EN_CURSO',
+            GanadorId = NULL,
+            FechaInicio = SYSDATE
+        WHERE PartidaId = :1
+    """, (partida_id,))
+
+    conn.commit()
+    conn.close()
+    return redirect(url_for('jugar', partida_id=partida_id))
+
+🧠 Lógica para Mostrar Turno Actual
+
+Prompt:
+
+“Quiero que se muestre el nombre del jugador en turno actual justo debajo del número de partida, con estilo llamativo.”
+
+HTML generado:
+
+<p class="lead mt-3">Turno actual: 
+  <strong class="text-info" id="turno-actual">{{ jugador_turno }}</strong>
+</p>
+
+Conclusión
+
+El uso de ChatGPT permitió no solo optimizar el tiempo de desarrollo, sino también mejorar la calidad del código, la organización visual y la experiencia interactiva. La IA funcionó como asistente técnico y creativo, ayudando a resolver problemas específicos de estilo, estructura y lógica de negocio con ejemplos prácticos, sugerencias claras y buenas prácticas.
